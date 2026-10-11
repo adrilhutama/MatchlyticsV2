@@ -7,7 +7,7 @@ import {
   calculateKellyStake,
 } from "@core/math/index.js";
 import type { SanitizedMatch } from "@core/types/domain.js";
-import { matchQueries } from "@services/supabase/query-options.js";
+import { fetchMatches } from "@services/supabase/queries.js";
 import { useTerminalFilterStore } from "../stores/useTerminalFilterStore.js";
 
 export interface MatchEdge {
@@ -27,12 +27,6 @@ export interface UseTerminalDataReturn {
   edges: Map<string, MatchEdge>;
 }
 
-/**
- * Use terminal data hook.
- *
- * Fetches matches via TanStack Query, reads filter state from Zustand,
- * computes on-the-fly Dixon-Coles probabilities and +EV edges.
- */
 export function useTerminalData(): UseTerminalDataReturn {
   const selectedLeagueId = useTerminalFilterStore((s) => s.selectedLeagueId);
   const minEV = useTerminalFilterStore((s) => s.minEV);
@@ -43,9 +37,13 @@ export function useTerminalData(): UseTerminalDataReturn {
     isLoading,
     error,
     refetch,
-  } = useQuery(matchQueries.list(selectedLeagueId ?? undefined));
+  } = useQuery({
+    queryKey: ["matches", selectedLeagueId],
+    queryFn: () => fetchMatches(selectedLeagueId ?? undefined),
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
 
-  // Compute quant edges for each match
   const edges = useMemo(() => {
     const edgeMap = new Map<string, MatchEdge>();
 
@@ -58,7 +56,6 @@ export function useTerminalData(): UseTerminalDataReturn {
         continue;
       }
 
-      // Find selected bookmaker's 1X2 odds
       const bookmaker = match.bookmakers.find(
         (b) => b.id === selectedBookmakerId,
       );
@@ -72,28 +69,23 @@ export function useTerminalData(): UseTerminalDataReturn {
         continue;
       }
 
-      // Dixon-Coles probabilities
       const matrix = buildBivariatePoisson(
         match.lambdas.home,
         match.lambdas.away,
         match.lambdas.cov,
       );
 
-      // De-vig fair odds from bookmaker prices
       const fair = devigShin([odds.home, odds.draw, odds.away]);
 
-      // EV for each outcome
       const homeEV = calculateEV(fair.pHome, odds.home);
       const drawEV = calculateEV(fair.pDraw, odds.draw);
       const awayEV = calculateEV(fair.pAway, odds.away);
 
-      // Best side
       let bestSide: "home" | "draw" | "away" = "home";
       let bestEV = homeEV;
       if (drawEV > bestEV) { bestSide = "draw"; bestEV = drawEV; }
       if (awayEV > bestEV) { bestSide = "away"; bestEV = awayEV; }
 
-      // Quarter Kelly on best edge
       const kellyStake = bestEV > 0
         ? calculateKellyStake(
             bestSide === "home" ? fair.pHome : bestSide === "draw" ? fair.pDraw : fair.pAway,
@@ -110,7 +102,6 @@ export function useTerminalData(): UseTerminalDataReturn {
     return edgeMap;
   }, [matches, selectedBookmakerId]);
 
-  // Filter matches by minEV threshold
   const filtered = useMemo(() => {
     if (minEV === 0) return matches;
     return matches.filter((m) => {

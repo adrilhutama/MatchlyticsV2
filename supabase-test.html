@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><title>Supabase Test</title></head>
+<body>
+<h1>Supabase Connectivity Test</h1>
+<pre id="output">Testing...</pre>
+<script>
+const SUPABASE_URL = "https://bsslbpyquimcsiueeckp.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzc2xiaHlxdWltY3NpdWVlY2twIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3MzM3MTksImV4cCI6MjEwNzMwOTcxOX0.8pNXgp_NbR465GryF_HBg9T9eOD8-gcosAiG49yTnGU";
+async function test() {
+  const output = document.getElementById("output");
+  try {
+    output.textContent = "Testing Supabase connection...";
+    const res = await fetch(SUPABASE_URL + "/rest/v1/matches?select=*", {
+      headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY }
+    });
+    output.textContent = "Status: " + res.status + "\n";
+    const data = await res.json();
+    output.textContent += "Matches: " + data.length + "\n";
+    data.forEach(m => output.textContent += " - " + m.home_team + " vs " + m.away_team + "\n");
+  } catch(e) {
+    output.textContent = "Error: " + e.message;
+  }
+}
+test();
+</script>
+</body>
+</html>
