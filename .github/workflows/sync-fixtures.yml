@@ -1,0 +1,27 @@
+name: sync-fixtures
+
+on:
+  schedule:
+    - cron: '0 3 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      FOOTBALL_DATA_KEY_1: ${{ secrets.FOOTBALL_DATA_KEY_1 }}
+      FOOTBALL_DATA_KEY_2: ${{ secrets.FOOTBALL_DATA_KEY_2 }}
+      FOOTBALL_DATA_KEY_3: ${{ secrets.FOOTBALL_DATA_KEY_3 }}
+      FOOTBALL_DATA_KEY_4: ${{ secrets.FOOTBALL_DATA_KEY_4 }}
+      FOOTBALL_DATA_KEY_5: ${{ secrets.FOOTBALL_DATA_KEY_5 }}
+      FOOTBALL_DATA_KEY_6: ${{ secrets.FOOTBALL_DATA_KEY_6 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Run all partitions
+        run: npx tsx scripts/sync-fixtures.ts

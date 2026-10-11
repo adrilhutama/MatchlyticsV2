@@ -1,0 +1,34 @@
+name: sync-odds
+
+on:
+  schedule:
+    # Friday 18:00 UTC
+    - cron: '0 18 * * 5'
+    # Saturday 09:00 & 14:00 UTC
+    - cron: '0 9,14 * * 6'
+    # Sunday 11:00 UTC
+    - cron: '0 11 * * 0'
+    # Tuesday & Wednesday 17:00 UTC
+    - cron: '0 17 * * 2,3'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      THE_ODDS_KEY_1: ${{ secrets.THE_ODDS_KEY_1 }}
+      THE_ODDS_KEY_2: ${{ secrets.THE_ODDS_KEY_2 }}
+      THE_ODDS_KEY_3: ${{ secrets.THE_ODDS_KEY_3 }}
+      THE_ODDS_KEY_4: ${{ secrets.THE_ODDS_KEY_4 }}
+      THE_ODDS_KEY_5: ${{ secrets.THE_ODDS_KEY_5 }}
+      THE_ODDS_KEY_6: ${{ secrets.THE_ODDS_KEY_6 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Run all partitions
+        run: npx tsx scripts/sync-odds.ts
