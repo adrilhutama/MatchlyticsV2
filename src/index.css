@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Global resets & quant-terminal aesthetic
+   --------------------------------------------------------------------------- */
+
+@layer base {
+  html,
+  body {
+    @apply bg-zinc-950 text-zinc-100 antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  ::selection {
+    @apply bg-emerald-500/30 text-emerald-300;
+  }
+
+  /* Monospace numbers */
+  .font-mono {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace,
+      SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  /* Smooth scrollbar for terminal */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-zinc-950;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-zinc-800 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-700;
+  }
+}
+
+@layer components {
+  /* Subtle neon glow utility */
+  .glow-emerald {
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+  }
+
+  /* Glassmorphic card base */
+  .card-glass {
+    @apply rounded-xl border border-zinc-800/80 bg-zinc-900/60 backdrop-blur-sm;
+  }
+}
