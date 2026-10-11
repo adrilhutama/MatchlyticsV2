@@ -1,29 +1,21 @@
 -- ============================================================
 -- Matchlytics V2 — Seed Data (supabase/seed.sql)
 --
--- Run against your Supabase project after applying migration 001:
---   supabase db push --db-url <DATABASE_URL>
--- Or via the Supabase SQL Editor.
+-- Run AFTER migrations 001 and 002 have been applied.
+-- Migration 002 already seeds the 12 leagues, so we only
+-- insert matches here using the canonical league IDs.
 --
--- All dates use Asia/Jakarta timezone (UTC+7).
+-- Compatible IDs: PL, CL, PD (from 002_fixtures_and_leagues.sql)
 -- ============================================================
 
 -- ---------------------------------------------------------------------------
--- 1. LEAGUES
--- ---------------------------------------------------------------------------
-INSERT INTO public.leagues (id, name, country, home_advantage_factor, logo_url) VALUES
-  ('epl',   'English Premier League',   'England',  1.28, 'https://media.api-sports.io/football/leagues/39.png'),
-  ('ucl',   'UEFA Champions League',    'Europe',   1.22, 'https://media.api-sports.io/football/leagues/2.png'),
-  ('laliga','La Liga',                  'Spain',    1.30, 'https://media.api-sports.io/football/leagues/140.png');
-
--- ---------------------------------------------------------------------------
--- 2. MATCHES
+-- 1. MATCHES
 -- ---------------------------------------------------------------------------
 
 -- ---------------------------------------------------------------
--- Match 1: Arsenal vs Chelsea  (EPL · High +EV Gold Setup)
+-- Match 1: Arsenal vs Chelsea  (PL · High +EV Gold Setup)
 -- ---------------------------------------------------------------
--- Pinnacle fair: 1.62 / 4.10 / 5.50  (implied: 58.7% / 22.8% / 18.2%)
+-- Pinnacle fair: 1.62 / 4.10 / 5.50
 -- Bet365 off-market home 1.75 → EV ≈ +8.1% on Home
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
@@ -34,18 +26,17 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'epl',
+  'PL',
   'Arsenal', 'Chelsea',
   'https://media.api-sports.io/football/teams/42.png',
   'https://media.api-sports.io/football/teams/49.png',
   NOW() AT TIME ZONE 'utc' + INTERVAL '3 hours',
-  'scheduled'::match_status,
+  'scheduled',
   1.85, 0.95, -0.08,
   10.4, 4.5,
   '{
     "pinnacle": {
       "name": "Pinnacle",
-      "last_update": "' || TO_CHAR(NOW(), 'YYYY-MM"T"HH24:MI:SS"Z"') || '",
       "h2h":      { "home": 1.62, "draw": 4.10, "away": 5.50 },
       "spreads":  [
         { "line": -1.0, "home": 1.55, "away": 2.55 },
@@ -58,7 +49,6 @@ INSERT INTO public.matches (
     },
     "bet365": {
       "name": "Bet365",
-      "last_update": "' || TO_CHAR(NOW(), 'YYYY-MM"T"HH24:MI:SS"Z"') || '",
       "h2h":      { "home": 1.75, "draw": 3.90, "away": 4.80 },
       "spreads":  [
         { "line": -1.0, "home": 1.65, "away": 2.25 },
@@ -80,9 +70,7 @@ INSERT INTO public.matches (
 );
 
 -- ---------------------------------------------------------------
--- Match 2: Inter vs AC Milan  (UCL · Tight Derby / Draw Bias)
--- ---------------------------------------------------------------
--- Low-scoring, balanced lambdas → top score 1-1 (~13.5%)
+-- Match 2: Inter vs AC Milan  (CL · Tight Derby / Draw Bias)
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
   league_id, home_team, away_team,
@@ -92,12 +80,12 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'ucl',
+  'CL',
   'Inter', 'AC Milan',
   'https://media.api-sports.io/football/teams/505.png',
   'https://media.api-sports.io/football/teams/489.png',
   NOW() AT TIME ZONE 'utc' + INTERVAL '28 hours',
-  'scheduled'::match_status,
+  'scheduled',
   1.25, 1.20, -0.08,
   9.2, 3.8,
   '{
@@ -123,9 +111,7 @@ INSERT INTO public.matches (
 );
 
 -- ---------------------------------------------------------------
--- Match 3: Getafe vs Real Madrid  (La Liga · Underdog Value)
--- ---------------------------------------------------------------
--- Getafe 0.70 λ vs Real 2.10 λ → soft book over 2.5 Under offer
+-- Match 3: Getafe vs Real Madrid  (PD · Underdog Value)
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
   league_id, home_team, away_team,
@@ -135,12 +121,12 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'laliga',
+  'PD',
   'Getafe', 'Real Madrid',
   'https://media.api-sports.io/football/teams/546.png',
   'https://media.api-sports.io/football/teams/541.png',
   NOW() AT TIME ZONE 'utc' + INTERVAL '48 hours',
-  'scheduled'::match_status,
+  'scheduled',
   0.70, 2.10, -0.08,
   8.1, 5.2,
   '{
@@ -148,8 +134,8 @@ INSERT INTO public.matches (
       "name": "Pinnacle",
       "h2h":      { "home": 7.50, "draw": 5.00, "away": 1.40 },
       "spreads":  [
-        { "line": +1.5, "home": 1.55, "away": 2.50 },
-        { "line": +1.0, "home": 1.35, "away": 3.20 }
+        { "line": 1.5, "home": 1.55, "away": 2.50 },
+        { "line": 1.0, "home": 1.35, "away": 3.20 }
       ],
       "totals":   [
         { "line": 2.5, "over": 1.95, "under": 1.92 },
@@ -174,7 +160,7 @@ INSERT INTO public.matches (
 );
 
 -- ---------------------------------------------------------------
--- Match 4: Man City vs Liverpool  (EPL · Live Scenario)
+-- Match 4: Man City vs Liverpool  (PL · Live Scenario)
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
   league_id, home_team, away_team,
@@ -184,12 +170,12 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'epl',
+  'PL',
   'Manchester City', 'Liverpool',
   'https://media.api-sports.io/football/teams/50.png',
   'https://media.api-sports.io/football/teams/40.png',
   NOW() AT TIME ZONE 'utc' + INTERVAL '1 hour',
-  'live'::match_status,
+  'live',
   2.10, 1.75, -0.08,
   11.0, 3.9,
   '{
@@ -212,7 +198,7 @@ INSERT INTO public.matches (
 );
 
 -- ---------------------------------------------------------------
--- Match 5: Barcelona vs Atletico Madrid  (La Liga · Finished)
+-- Match 5: Barcelona vs Atletico Madrid  (PD · Finished)
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
   league_id, home_team, away_team,
@@ -222,12 +208,12 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'laliga',
+  'PD',
   'Barcelona', 'Atletico Madrid',
   'https://media.api-sports.io/football/teams/529.png',
   'https://media.api-sports.io/football/teams/530.png',
   NOW() AT TIME ZONE 'utc' - INTERVAL '2 days',
-  'finished'::match_status,
+  'finished',
   1.90, 1.05, -0.08,
   9.8, 4.0,
   '{
@@ -246,7 +232,7 @@ INSERT INTO public.matches (
 );
 
 -- ---------------------------------------------------------------
--- Match 6: Bayern Munich vs PSG  (UCL · Classic Heavyweight)
+-- Match 6: Bayern Munich vs PSG  (CL · Classic Heavyweight)
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
   league_id, home_team, away_team,
@@ -256,12 +242,12 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'ucl',
+  'CL',
   'Bayern Munich', 'Paris Saint-Germain',
   'https://media.api-sports.io/football/teams/157.png',
   'https://media.api-sports.io/football/teams/85.png',
   NOW() AT TIME ZONE 'utc' + INTERVAL '5 days',
-  'scheduled'::match_status,
+  'scheduled',
   2.30, 1.95, -0.08,
   10.8, 3.5,
   '{
@@ -294,7 +280,7 @@ INSERT INTO public.matches (
 );
 
 -- ---------------------------------------------------------------
--- Match 7: Newcastle vs Tottenham  (EPL · Late Fixture)
+-- Match 7: Newcastle vs Tottenham  (PL · Late Fixture)
 -- ---------------------------------------------------------------
 INSERT INTO public.matches (
   league_id, home_team, away_team,
@@ -304,12 +290,12 @@ INSERT INTO public.matches (
   expected_corners, expected_cards,
   odds_data
 ) VALUES (
-  'epl',
+  'PL',
   'Newcastle United', 'Tottenham Hotspur',
   'https://media.api-sports.io/football/teams/34.png',
   'https://media.api-sports.io/football/teams/47.png',
   NOW() AT TIME ZONE 'utc' + INTERVAL '6 days',
-  'scheduled'::match_status,
+  'scheduled',
   1.55, 1.40, -0.08,
   9.6, 4.8,
   '{
