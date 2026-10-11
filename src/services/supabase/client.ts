@@ -42,12 +42,23 @@ if (supabaseUrl && supabaseAnonKey) {
             then: () => Promise.resolve({ data: null, error: null }),
           }),
         }),
+        gte: () => ({
+          lte: () => Promise.resolve({ data: null, error: null }),
+        }),
+        lt: () => Promise.resolve({ data: null, error: null }),
       }),
       insert: () => Promise.resolve({ data: null, error: null }),
       update: () => Promise.resolve({ data: null, error: null }),
       delete: () => Promise.resolve({ data: null, error: null }),
+      upsert: () => Promise.resolve({ data: null, error: null }),
+      throwOnError: () => stub,
     }),
-    auth: { getSession: () => Promise.resolve({ data: { session: null }, error: null }) },
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signOut: () => Promise.resolve({ data: { session: null }, error: null }),
+      signInWithOtp: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    },
   };
   // eslint-disable-next-line no-console
   console.warn(
