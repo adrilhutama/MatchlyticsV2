@@ -20,39 +20,24 @@ let client;
 if (supabaseUrl && supabaseAnonKey) {
   client = createClient(supabaseUrl, supabaseAnonKey);
 } else {
+  /** Helper: returns an object whose methods can be chained infinitely. */
+  const chain = () => {
+    const obj: Record<string, unknown> = {};
+    const methods = ["select", "order", "eq", "gte", "lte", "lt", "inFilter", "single", "maybeSingle", "then", "upsert", "insert", "update", "delete"];
+    for (const m of methods) {
+      obj[m] = (...args: unknown[]) => {
+        // If called as the final resolver (single/maybeSingle/then), return resolved promise
+        if (m === "single" || m === "maybeSingle" || m === "then") {
+          return Promise.resolve({ data: null, error: null });
+        }
+        return chain();
+      };
+    }
+    return obj;
+  };
+
   const stub = {
-    from: () => ({
-      select: () => ({
-        order: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-          maybeSingle: () => Promise.resolve({ data: null, error: null }),
-          then: () => Promise.resolve({ data: null, error: null }),
-        }),
-        eq: () => ({
-          order: () => ({
-            single: () => Promise.resolve({ data: null, error: null }),
-            maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            then: () => Promise.resolve({ data: null, error: null }),
-          }),
-        }),
-        inFilter: () => ({
-          order: () => ({
-            single: () => Promise.resolve({ data: null, error: null }),
-            maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            then: () => Promise.resolve({ data: null, error: null }),
-          }),
-        }),
-        gte: () => ({
-          lte: () => Promise.resolve({ data: null, error: null }),
-        }),
-        lt: () => Promise.resolve({ data: null, error: null }),
-      }),
-      insert: () => Promise.resolve({ data: null, error: null }),
-      update: () => Promise.resolve({ data: null, error: null }),
-      delete: () => Promise.resolve({ data: null, error: null }),
-      upsert: () => Promise.resolve({ data: null, error: null }),
-      throwOnError: () => stub,
-    }),
+    from: () => chain(),
     auth: {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       signOut: () => Promise.resolve({ data: { session: null }, error: null }),
