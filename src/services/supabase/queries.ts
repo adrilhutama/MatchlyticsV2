@@ -3,14 +3,12 @@
  *
  * Each function maps a database query to a strongly-typed result.
  * Match rows are run through the sanitizer before returning.
- * Falls back to mock data when no Supabase credentials are configured.
  */
 
 import type { LeagueRow, MatchRow, ProfileRow } from "../../core/types/database.js";
 import type { SanitizedMatch } from "../../core/types/domain.js";
 import { sanitizeMatch } from "../../core/guards/match-sanitizer.js";
 import { supabase } from "./client.js";
-import { MOCK_MATCHES, MOCK_LEAGUES } from "./mock-data.js";
 
 // ---------------------------------------------------------------------------
 // Leagues
@@ -22,7 +20,7 @@ export async function fetchLeagues(): Promise<LeagueRow[]> {
     .select("*")
     .order("name", { ascending: true });
 
-  if (error || !Array.isArray(data)) return MOCK_LEAGUES as LeagueRow[];
+  if (error || !Array.isArray(data)) return [];
   return data as LeagueRow[];
 }
 
@@ -33,7 +31,6 @@ export async function fetchLeagues(): Promise<LeagueRow[]> {
 /**
  * Fetch all matches, optionally filtered by league_id.
  * Results are sanitized and nulls are dropped.
- * Falls back to mock data when no Supabase credentials are configured.
  */
 export async function fetchMatches(leagueId?: string): Promise<SanitizedMatch[]> {
   let query = supabase.from("matches").select("*");
@@ -44,7 +41,7 @@ export async function fetchMatches(leagueId?: string): Promise<SanitizedMatch[]>
 
   const { data, error } = await query.order("kickoff", { ascending: true });
 
-  if (error || !Array.isArray(data)) return MOCK_MATCHES;
+  if (error || !Array.isArray(data)) return [];
 
   return (data as MatchRow[])
     .map((row) => sanitizeMatch(row))
